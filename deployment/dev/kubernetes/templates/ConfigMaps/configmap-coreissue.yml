@@ -1,0 +1,41 @@
+apiVersion: v1
+data:
+  CAuth_PORT: "4427"
+  CAuth_SCALE_NAME: scale_appScale4473
+  CIReportsFolder: CoreIssueReports
+  CoreAPPDBName: CREDIT_COREAPP
+  CoreAuthDBName: CREDIT_COREAUTH
+  CoreISSUEDBName: CREDIT_COREISSUE
+  CoreIssueLink: http://k8scoreissuepanel.corecard.in/appCoreissue.aspx
+  CoreIssuePort: "4421"
+  CoreIssueScaleFile: scale_appScale4421.ini
+  CoreIssueServicesPort: "4422"
+  CoreIssueServicesScaleFile: scale_appScale4422.ini
+  CoreLibraryDBName: CREDIT_CORELIBRARY
+  CoreMoneyDBName: CREDIT_CORECREDIT
+  DB_Server_NAME: VMDBLabels
+  EXECUTABLEPATH: C:\CC_Runtime
+  LettersVirDir: CoreIssueReports
+  MailServerName: Dummy
+  PrimaryDBServerODBCName: VMDBLabels
+  ReplicatedDBServerODBCName: VMDBLabels
+  ReportsCoreAPPDBName: CREDIT_COREAPP
+  ReportsCoreAuthDBName: CREDIT_COREAUTH
+  ReportsCoreISSUEDBName: CREDIT_COREISSUE
+  ReportsCoreLibraryDBName: CREDIT_CORELIBRARY
+  ReportsCoreMoneyDBName: CREDIT_CORECREDIT
+  SCALE_SERVER_HOST: 10.206.5.201
+  SCALE_SERVER_PORT: "9999"
+  SERVER_PORT: "1433"
+  SQL_SERVER_IP: 10.206.4.168
+  ThalesConnectionAddr: 10.120.0.205 10.120.0.206 10.120.0.226 10.120.0.227
+  base: C:\DBBSETUP
+  dbb_trace_path: C:\TraceFiles\CoreIssue
+  emISTWatchConnectionAddr: ISTWATCHServers
+  emKMSdefaultMachines: 10.233.50.141
+  emHSMConnectionAddr: 10.0.0.1
+kind: ConfigMap
+metadata:
+  name: configmap-coreissue
+  namespace: "{{ k8s_namespace }}"
+---

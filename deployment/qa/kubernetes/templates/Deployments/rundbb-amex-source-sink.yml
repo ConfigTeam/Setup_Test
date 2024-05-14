@@ -1,0 +1,148 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: rundbb-amex-source-sink
+  name: rundbb-amex-source-sink
+  namespace: {{ k8s_namespace }}
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: rundbb-amex-source-sink
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: rundbb-amex-source-sink
+    spec:
+      containers:
+        - args:
+            - CoreAuth
+            - "9"
+          envFrom:
+            - configMapRef:
+                name: configmap-coreauth
+          image: {{ docker_registry }}/{{ image_name }}:{{ image_version }}
+          imagePullPolicy: Always
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthy
+              port: 7023
+              scheme: HTTP
+            initialDelaySeconds: 300
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: rundbb-source
+          ports:
+            - containerPort: 5021
+              name: amexsource
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthy
+              port: 7023
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            limits:
+              cpu: 300m
+              memory: 2Gi
+            requests:
+              cpu: 200m
+              memory: 1536Mi
+          securityContext:
+            windowsOptions:
+              gmsaCredentialSpecName: "{{ gmsa_account }}"
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+            - mountPath: C:\\tracefiles
+              name: trace-volume
+        - args:
+            - CoreAuth
+            - "10"
+          envFrom:
+            - configMapRef:
+                name: configmap-coreauth
+          image: {{ docker_registry }}/{{ image_name }}:{{ image_version }}
+          imagePullPolicy: Always
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthy
+              port: 7022
+              scheme: HTTP
+            initialDelaySeconds: 300
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: rundbb-sink
+          ports:
+            - containerPort: 5022
+              name: sink
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthy
+              port: 7022
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            limits:
+              cpu: 300m
+              memory: 2Gi
+            requests:
+              cpu: 200m
+              memory: 1536Mi
+          securityContext:
+            windowsOptions:
+              gmsaCredentialSpecName: "{{ gmsa_account }}"
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+            - mountPath: C:\\tracefiles
+              name: trace-volume
+      dnsPolicy: ClusterFirst
+      imagePullSecrets:
+        - name: regsecret
+      nodeSelector:
+        kubernetes.io/os: windows
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - hostPath:
+            path: C:\\tracefiles
+            type: ""
+          name: trace-volume
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: environment
+                    operator: In
+                    values:
+                      - qa
+      tolerations:
+        - key: qa
+          operator: Exists
+          effect: NoSchedule

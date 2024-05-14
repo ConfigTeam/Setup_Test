@@ -1,0 +1,6 @@
+#nexus_registry_vars.yml
+---
+docker_username: "{{ vault_docker_username }}"
+docker_password: "{{ vault_docker_password }}"
+docker_email: "{{ vault_docker_email }}"
+docker_registry: "{{ vault_docker_registry }}"

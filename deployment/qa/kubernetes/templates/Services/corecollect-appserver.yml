@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: corecollect-appserver
+  namespace: "{{ k8s_namespace }}"
+spec:
+  externalTrafficPolicy: Cluster
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - nodePort: 32034
+    port: 4423
+    protocol: TCP
+    targetPort: 4423
+  selector:
+    app: dbbappserver-corecollect
+  sessionAffinity: None
+  type: NodePort
+---

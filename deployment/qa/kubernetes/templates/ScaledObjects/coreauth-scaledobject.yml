@@ -1,0 +1,31 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  labels:
+    scaledobject.keda.sh/name: "{{ scaledobjects }}"
+  name: "{{ scaledobjects }}"
+  namespace: "{{ k8s_namespace }}"
+spec:
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          policies:
+          - periodSeconds: 30
+            type: Pods
+            value: 1
+          - periodSeconds: 30
+            type: Percent
+            value: 100
+          stabilizationWindowSeconds: 60
+    restoreToOriginalReplicaCount: true
+    scalingModifiers: {}
+  maxReplicaCount: 4
+  minReplicaCount: 2
+  scaleTargetRef:
+    name: "{{ deployment }}"
+  triggers:
+  - metadata:
+      value: "80"
+    metricType: Utilization
+    type: cpu

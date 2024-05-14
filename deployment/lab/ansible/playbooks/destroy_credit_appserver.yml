@@ -1,0 +1,75 @@
+#Destroy_credit_appserver.yml
+---
+- name: Destroy to Kubernetes
+  hosts: kube_control_plane
+  gather_facts: false
+  vars:
+      image_name: "{{ image_name }}"
+      image_version: "{{ image_version }}"
+      secrets_file: "{{ secrets_file }}"
+  vars_files:
+    - "./../vars/{{ secrets_file }}"
+    - "./../vars/nexus_registry_vars.yml"
+  tasks:
+      - name: Get list of YAML files in directory ScaledObjects
+      find:
+        paths: ./../../kubernetes/templates/ScaledObjects
+        patterns: "*.yml"
+      delegate_to: localhost
+      register: yaml_files
+
+    - name: Destroy AppServer ScaledObjects
+      kubernetes.core.k8s:
+        state: absent
+        delete_options:
+            gracePeriodSeconds: 0
+        force: true
+        template: "{{ item.path }}"
+      loop: "{{ yaml_files.files }}"
+    - name: Get list of YAML files in directory Deployments
+      find:
+        paths: ./../../kubernetes/templates/Deployments
+        patterns: "*.yml"
+      delegate_to: localhost
+      register: yaml_files
+
+    - name: Destroy AppServer Deployments
+      kubernetes.core.k8s:
+        state: absent
+        delete_options:
+            gracePeriodSeconds: 0
+        force: true
+        template: "{{ item.path }}"
+      loop: "{{ yaml_files.files }}"
+
+    - name: Get list of YAML files in directory ConfigMaps
+      find:
+        paths: ./../../kubernetes/templates/ConfigMaps
+        patterns: "*.yml"
+      delegate_to: localhost
+      register: yaml_files
+
+    - name: Destroy AppServer ConfigMaps
+      kubernetes.core.k8s:
+        state: absent
+        delete_options:
+            gracePeriodSeconds: 0
+        force: true
+        template: "{{ item.path }}"
+      loop: "{{ yaml_files.files }}"
+
+    - name: Get list of YAML files in directory Services
+      find:
+        paths: ./../../kubernetes/templates/Services
+        patterns: "*.yml"
+      delegate_to: localhost
+      register: yaml_files
+
+    - name: Destroy AppServer Services
+      kubernetes.core.k8s:
+        state: absent
+        delete_options:
+            gracePeriodSeconds: 0
+        force: true
+        template: "{{ item.path }}"
+      loop: "{{ yaml_files.files }}"

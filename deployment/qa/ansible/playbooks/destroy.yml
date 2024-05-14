@@ -1,0 +1,48 @@
+#Destroy_credit_appserver.yml
+---
+- name: Destroy to Kubernetes
+  hosts: kube_control_plane
+  gather_facts: false
+  vars:
+      image_name: "{{ image_name }}"
+      image_version: "{{ image_version }}"
+      secrets_file: "{{ secrets_file }}"
+      scaledobjects: "{{ scaledobjects }}"
+      configmap: "{{ configmap }}"
+      services: "{{ services }}"
+      deployment: "{{ deployment }}"
+  vars_files:
+    - "./../vars/{{ secrets_file }}"
+    - "./../vars/nexus_registry_vars.yml"
+  tasks:
+    - name: Destroy AppServer ScaledObjects
+      kubernetes.core.k8s:
+        state: absent
+        delete_options:
+            gracePeriodSeconds: 0
+        force: true
+        template: "./../../kubernetes/templates/ScaledObjects/{{ scaledobjects }}.yml"
+
+    - name: Destroy AppServer Deployments
+      kubernetes.core.k8s:
+        state: absent
+        delete_options:
+            gracePeriodSeconds: 0
+        force: true
+        template: "./../../kubernetes/templates/Deployments/{{ deployment }}.yml"
+
+    - name: Destroy AppServer ConfigMaps
+      kubernetes.core.k8s:
+        state: absent
+        delete_options:
+            gracePeriodSeconds: 0
+        force: true
+        template: "./../../kubernetes/templates/ConfigMaps/{{ configmap }}.yml"
+
+    - name: Destroy AppServer Services
+      kubernetes.core.k8s:
+        state: absent
+        delete_options:
+            gracePeriodSeconds: 0
+        force: true
+        template: "./../../kubernetes/templates/Services/{{ services }}.yml"

@@ -1,0 +1,42 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  labels:
+    scaledobject.keda.sh/name: tnp-scaledobject
+  name: tnp-scaledobject
+  namespace: "{{ k8s_namespace }}"
+spec:
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          policies:
+          - periodSeconds: 30
+            type: Pods
+            value: 2
+          stabilizationWindowSeconds: 60
+    restoreToOriginalReplicaCount: true
+    scalingModifiers: {}
+  cooldownPeriod: 60
+  maxReplicaCount: 6
+  minReplicaCount: 2
+  pollingInterval: 10
+  scaleTargetRef:
+    name: rundbb-tnp
+  triggers:
+  - metadata:
+      value: "80"
+    metricType: Utilization
+    name: trig_cpu
+    type: cpu
+  - authenticationRef:
+      name: keda-trigger-auth-mssql-secret
+    metadata:        
+      cooldownPeriod: "90"
+      pollingInterval: "10"
+      query: SELECT count(*) FROM credit_coreissue..commontnp as ct with (nolock),
+        credit_coreissue..ARSystemAccounts ar with (nolock) WHERE ct.trantime BETWEEN
+        ar.procDayStart and ar.procDayEnd
+      targetValue: "50"
+    type: mssql
+---

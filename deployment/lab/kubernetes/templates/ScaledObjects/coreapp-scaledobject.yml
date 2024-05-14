@@ -1,0 +1,32 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  labels:
+    scaledobject.keda.sh/name: coreapp-scaledobject
+  name: coreapp-scaledobject
+  namespace: "{{ k8s_namespace }}"
+spec:
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          policies:
+          - periodSeconds: 30
+            type: Pods
+            value: 1
+          - periodSeconds: 30
+            type: Percent
+            value: 1.0
+          stabilizationWindowSeconds: 60
+    restoreToOriginalReplicaCount: true
+    scalingModifiers: {}
+  maxReplicaCount: 4
+  minReplicaCount: 2
+  scaleTargetRef:
+    name: dbbappserver-coreapp
+  triggers:
+  - metadata:
+      value: "80"
+    metricType: Utilization
+    type: cpu
+---

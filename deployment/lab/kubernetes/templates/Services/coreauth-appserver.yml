@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: coreauth-appserver
+  namespace: "{{ k8s_namespace }}"
+spec:
+  externalTrafficPolicy: Cluster
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - nodePort: 31427
+    port: 4427
+    protocol: TCP
+    targetPort: 4427
+  selector:
+    app: dbbappserver-coreauth
+  sessionAffinity: None
+  type: NodePort
+---

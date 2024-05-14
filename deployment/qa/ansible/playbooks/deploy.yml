@@ -1,0 +1,59 @@
+#deploy_credit_appserver.yml
+---
+- name: Deploy to Kubernetes
+  hosts: kube_control_plane
+  gather_facts: false
+  vars:
+      image_name: "{{ image_name }}"
+      image_version: "{{ image_version }}"
+      secrets_file: "{{ secrets_file }}"
+      node_port: "{{ node_port }}"
+      scaledobjects: "{{ scaledobjects }}"
+      configmap: "{{ configmap }}"
+      services: "{{ services }}"
+      deployment: "{{ deployment }}"
+  vars_files:
+    - "./../vars/{{ secrets_file }}"
+    - "./../vars/nexus_registry_vars.yml"
+  tasks:
+    - name: Check if Docker Registry Secret exists
+      command: kubectl get secret regsecret --namespace=default
+      ignore_errors: true
+      register: secret_check_result
+
+    - name: Delete Docker Registry Secret if it exists
+      command: kubectl delete secret regsecret --namespace=default
+      when: secret_check_result.rc == 0
+
+    - name: Create Docker Registry Secret
+      command: >
+        kubectl create secret docker-registry regsecret
+        --docker-username={{ docker_username }}
+        --docker-password={{ docker_password }}
+        --docker-email={{ docker_email }}
+        --docker-server={{ docker_registry }}
+        --namespace=default
+
+    - name: Create AppServer ConfigMaps
+      kubernetes.core.k8s:
+        state: present
+        force: true
+        template: "./../../kubernetes/templates/ConfigMaps/{{ configmap }}.yml"
+
+    - name: Create AppServer Deployments
+      kubernetes.core.k8s:
+        state: present
+        force: true
+        template: "./../../kubernetes/templates/Deployments/{{ deployment }}.yml"
+
+    - name: Create AppServer Services
+      kubernetes.core.k8s:
+        state: present
+        force: true
+        template: "./../../kubernetes/templates/Services/{{ services }}.yml"
+
+    - name: Create AppServer ScaledObjects
+      kubernetes.core.k8s:
+        state: present
+        force: true
+        template: "./../../kubernetes/templates/ScaledObjects/{{ scaledobjects }}.yml"
